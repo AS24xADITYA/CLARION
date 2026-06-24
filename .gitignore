@@ -49,6 +49,7 @@ backend/training/test/
 *.pb
 *.pt
 *.pth
+*.safetensors
 *.pkl
 *.zip
 *.tar.gz
