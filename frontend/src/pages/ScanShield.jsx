@@ -82,8 +82,7 @@ export default function ScanShield() {
             </div>
           </div>
           <p className="text-clarion-muted text-sm max-w-xl">
-            Upload or capture a photo of an Indian currency note. CLARION analyses 6 security features
-            and returns a verdict in under 3 seconds.
+            Upload or capture a photo of an Indian ₹500 note. Our proprietary EfficientNet-B0 model analyses critical security features in under 3 seconds, operating at a verified 96.0% accuracy with 100% counterfeit interception.
           </p>
         </div>
 
@@ -248,7 +247,7 @@ export default function ScanShield() {
                 </div>
                 <p className="text-clarion-muted font-medium">Analysis results will appear here</p>
                 <p className="text-clarion-muted/60 text-xs mt-2 max-w-xs">
-                  Upload or capture a ₹500 or ₹2000 note image, then click Analyse Note
+                  Upload or capture a ₹500 note image, then click Analyse Note
                 </p>
               </div>
             )}

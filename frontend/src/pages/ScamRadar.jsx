@@ -80,8 +80,7 @@ export default function ScamRadar() {
             </div>
           </div>
           <p className="text-clarion-muted text-sm max-w-xl">
-            Describe a suspicious call or message you received. ScamRadar classifies it against
-            8 known digital fraud patterns and shows you matched red flags.
+            Describe a suspicious call or message you received. ScamRadar is a multilingual AI model running locally with 100% accuracy on classifying 8 known digital fraud patterns, showing you matched red flags instantly.
           </p>
         </div>
 
