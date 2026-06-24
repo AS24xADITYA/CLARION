@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-clarion-bg text-clarion-text font-sans antialiased;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#root { min-height: 100dvh; }
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-clarion-bg; }
+::-webkit-scrollbar-thumb { @apply bg-clarion-border rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-clarion-muted; }
+
+/* ─── Component Classes ──────────────────────────────────────────────────── */
+@layer components {
+
+  /* Glass card */
+  .glass-card {
+    @apply bg-clarion-surface rounded-2xl shadow-glass border border-clarion-border;
+    backdrop-filter: blur(12px);
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply bg-clarion-accent hover:bg-blue-500 text-white font-semibold
+           px-6 py-3 rounded-xl transition-all duration-200
+           shadow-accent hover:shadow-lg hover:-translate-y-0.5
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply bg-clarion-danger hover:bg-red-500 text-white font-semibold
+           px-6 py-3 rounded-xl transition-all duration-200
+           shadow-danger hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply border border-clarion-border hover:border-clarion-accent text-clarion-muted
+           hover:text-clarion-accent font-medium px-6 py-3 rounded-xl
+           transition-all duration-200;
+  }
+
+  /* Form input */
+  .form-input {
+    @apply w-full bg-clarion-surface2 border border-clarion-border rounded-xl
+           px-4 py-3 text-clarion-text placeholder:text-clarion-muted
+           focus:outline-none focus:border-clarion-accent focus:ring-1 focus:ring-clarion-accent
+           transition-colors duration-200;
+  }
+
+  /* Section heading */
+  .section-heading {
+    @apply text-2xl font-bold text-clarion-text tracking-tight;
+  }
+
+  /* Verdict badge — genuine */
+  .verdict-genuine {
+    @apply bg-success-gradient text-white px-4 py-2 rounded-full font-bold
+           text-sm uppercase tracking-widest shadow-success;
+  }
+
+  /* Verdict badge — fake */
+  .verdict-fake {
+    @apply bg-danger-gradient text-white px-4 py-2 rounded-full font-bold
+           text-sm uppercase tracking-widest shadow-danger;
+  }
+
+  /* Verdict badge — uncertain */
+  .verdict-uncertain {
+    @apply bg-yellow-900/60 border border-yellow-600 text-yellow-300 px-4 py-2
+           rounded-full font-bold text-sm uppercase tracking-widest;
+  }
+
+  /* Emergency helpline pill */
+  .helpline-pill {
+    @apply bg-clarion-danger/10 border border-clarion-danger/30 text-clarion-danger
+           rounded-full px-4 py-1 text-sm font-bold animate-pulse-slow;
+  }
+
+  /* Nav link */
+  .nav-link {
+    @apply text-clarion-muted hover:text-clarion-text font-medium px-4 py-2
+           rounded-lg transition-all duration-200 hover:bg-clarion-border/30;
+  }
+
+  .nav-link.active {
+    @apply text-clarion-accent bg-clarion-accent/10;
+  }
+
+  /* Typing dot animation */
+  .typing-dot {
+    @apply w-2 h-2 bg-clarion-muted rounded-full inline-block;
+    animation: bounceDot 1.4s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(1) { animation-delay: 0s; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* Risk meter arc colors */
+  .risk-low    { stroke: #16A34A; }
+  .risk-medium { stroke: #D97706; }
+  .risk-high   { stroke: #DC2626; }
+}
+
+/* ─── Utility Overrides ──────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-danger {
+    background: linear-gradient(135deg, #DC2626, #F87171);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

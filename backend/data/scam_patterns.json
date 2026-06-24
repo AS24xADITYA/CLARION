@@ -1,0 +1,169 @@
+[
+  {
+    "pattern_id": "DA_001",
+    "class_label": "fake_cbi",
+    "name": "Fake CBI Digital Arrest Scam",
+    "description": "Fraudsters impersonate Central Bureau of Investigation (CBI) officers, threatening citizens with arrest via video call for alleged financial crimes, drug trafficking, or money laundering.",
+    "trigger_keywords": ["CBI", "central bureau", "arrest", "warrant", "digital arrest", "video call", "FIR", "investigation", "officer", "badge", "uniform"],
+    "red_flags": [
+      "Caller claims to be a CBI/IPS/IAS officer and demands money to cancel an FIR",
+      "Insists you stay on a video call and not leave the screen ('digital arrest')",
+      "Threatens immediate arrest if you disconnect the call",
+      "Demands complete secrecy — instructs you not to tell family members",
+      "Asks for bank account details or OTP under the guise of 'verification'",
+      "Uses video call to show a fake police uniform, office backdrop, or badge",
+      "Creates extreme time pressure — 'You have 2 hours or we issue a warrant'",
+      "Claims your Aadhaar or PAN is linked to criminal activity"
+    ],
+    "government_fact": "The CBI, ED, or any law enforcement agency NEVER arrests citizens via video call. No government agency demands money to cancel an FIR or arrest warrant. If you receive such a call, it is 100% a scam.",
+    "recommended_action": "Do not transfer any money. Disconnect the call immediately. Do not share OTP, Aadhaar, or bank details. File a complaint at cybercrime.gov.in and call helpline 1930.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "CRITICAL"
+  },
+  {
+    "pattern_id": "DA_002",
+    "class_label": "fake_ed",
+    "name": "Fake ED Money Laundering Scam",
+    "description": "Fraudsters pose as Enforcement Directorate (ED) or Income Tax officers, accusing citizens of money laundering through their bank accounts and demanding payment to avoid prosecution.",
+    "trigger_keywords": ["ED", "enforcement directorate", "money laundering", "income tax", "black money", "PMLA", "prosecution", "account frozen", "financial crime", "tax evasion"],
+    "red_flags": [
+      "Caller claims your bank account has been used in a Rs 1 crore+ money laundering scheme",
+      "Demands you transfer funds to a 'government safe account' to prove innocence",
+      "Claims your account will be permanently frozen unless you pay a 'penalty'",
+      "Sends fake ED notice via WhatsApp with government letterhead",
+      "Asks you to install AnyDesk or TeamViewer for 'remote verification'",
+      "Threatens arrest under PMLA (Prevention of Money Laundering Act)",
+      "Offers to 'settle' the case for a cash payment"
+    ],
+    "government_fact": "The ED never contacts citizens via phone or WhatsApp demanding money. ED summons are always issued via official registered post. No 'safe government account' exists for penalty payments.",
+    "recommended_action": "Do not install remote access apps. Do not transfer money. Hang up and verify by calling the official ED helpline. Report at cybercrime.gov.in.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "CRITICAL"
+  },
+  {
+    "pattern_id": "DA_003",
+    "class_label": "customs_parcel",
+    "name": "Customs Parcel / Drug Trafficking Scam",
+    "description": "Fraudsters call claiming a parcel in the victim's name was intercepted at customs containing drugs, counterfeit currency, or illegal goods, threatening criminal charges unless a 'clearance fee' is paid.",
+    "trigger_keywords": ["customs", "parcel", "package", "drugs", "narcotics", "courier", "DHL", "FedEx", "intercepted", "seized", "clearance", "duty", "illegal goods", "contraband"],
+    "red_flags": [
+      "You receive a call about a parcel you never sent being 'intercepted at customs'",
+      "Caller claims drugs or weapons were found in your name at the airport/port",
+      "Demands 'customs clearance fee' or 'bail amount' to release the parcel",
+      "Threatens FIR and arrest if clearance fee is not paid within hours",
+      "Sends fake customs department notice via WhatsApp",
+      "Claim to be from FedEx, DHL, or Indian Customs Department",
+      "Insists payment via UPI, crypto, or gift cards only"
+    ],
+    "government_fact": "Indian Customs never contacts citizens via unsolicited phone calls. Customs duties are always paid at official ports, not via UPI or gift cards. Any such call is a fraud.",
+    "recommended_action": "Disconnect immediately. Do not pay any 'customs fee'. File complaint at cybercrime.gov.in or call 1930.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "HIGH"
+  },
+  {
+    "pattern_id": "DA_004",
+    "class_label": "court_summons",
+    "name": "Fake Court Summons Scam",
+    "description": "Fraudsters impersonate court officials or lawyers, claiming the victim has missed a court hearing and must pay a fine immediately to avoid arrest for contempt of court.",
+    "trigger_keywords": ["court", "summons", "judge", "hearing", "contempt", "fine", "legal notice", "advocate", "high court", "supreme court", "bail", "warrant issued"],
+    "red_flags": [
+      "Caller claims you missed a court hearing and a non-bailable warrant has been issued",
+      "Demands immediate payment of a 'court fee' or 'bail amount' over phone",
+      "Claims to be a lawyer or court official who can 'resolve' the case for money",
+      "Sends fake court notice via WhatsApp with official court seal",
+      "Creates urgency: 'Police will arrive at your house in 2 hours'",
+      "Requests payment via UPI, crypto, or wire transfer"
+    ],
+    "government_fact": "Courts in India never issue summons via phone calls. Court notices are always delivered via registered post or official process servers. You cannot pay bail via UPI or phone.",
+    "recommended_action": "Do not pay. Verify by calling your nearest district court registry. Consult a real lawyer if needed. Report at cybercrime.gov.in.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "HIGH"
+  },
+  {
+    "pattern_id": "DA_005",
+    "class_label": "trai_suspension",
+    "name": "TRAI Number Suspension Scam",
+    "description": "Fraudsters impersonate TRAI (Telecom Regulatory Authority of India) or telecom company officials, claiming the victim's mobile number will be suspended within hours due to misuse, and demanding verification or payment.",
+    "trigger_keywords": ["TRAI", "telecom", "number suspended", "mobile blocked", "SIM deactivation", "mobile number", "Airtel", "Jio", "BSNL", "regulatory", "misuse", "KYC"],
+    "red_flags": [
+      "Call claims your mobile number will be blocked in 2 hours due to 'illegal activity'",
+      "Asks you to 'press 9' or call back on a specific number for 'verification'",
+      "Requests Aadhaar number, OTP, or bank details for 'KYC re-verification'",
+      "Threatens your number will be permanently blacklisted",
+      "Claims multiple fraudulent calls were made from your number without your knowledge",
+      "Forwards call to a fake 'TRAI officer' who demands money to prevent suspension"
+    ],
+    "government_fact": "TRAI never suspends phone numbers by calling customers. If your number is genuinely misused, your telecom operator sends an SMS — they never call for money. TRAI does not accept payments over phone.",
+    "recommended_action": "Ignore and disconnect. Your telecom operator's customer care is the only legitimate contact. Report at cybercrime.gov.in or call 1930.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "HIGH"
+  },
+  {
+    "pattern_id": "DA_006",
+    "class_label": "rbi_freeze",
+    "name": "Fake RBI Account Freeze Scam",
+    "description": "Fraudsters impersonate Reserve Bank of India (RBI) officials or bank employees, claiming the victim's bank account has been flagged for suspicious activity and will be permanently frozen unless they verify their details immediately.",
+    "trigger_keywords": ["RBI", "reserve bank", "account frozen", "bank account", "suspicious transaction", "SWIFT", "RTGS", "NEFT", "account blocked", "banking fraud", "verify account"],
+    "red_flags": [
+      "Caller claims to be from RBI and says your account is being investigated",
+      "Says your account will be frozen within hours if you don't 'verify'",
+      "Requests you share OTP, CVV, debit card PIN, or net banking password",
+      "Asks you to transfer money to a 'secure RBI escrow account'",
+      "Claims your account has received 'suspicious RTGS transfers'",
+      "Sends a fake bank notification or RBI circular via WhatsApp",
+      "Asks you to install AnyDesk for 'remote banking verification'"
+    ],
+    "government_fact": "The RBI never contacts individual customers directly. Your bank communicates only via official registered email, SMS, or branch visits — never via unsolicited phone calls requesting OTPs or passwords. No 'RBI escrow account' exists.",
+    "recommended_action": "Never share OTP or PIN. Hang up and call your bank's official customer care number (on back of your card). Report at cybercrime.gov.in or 1930.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "CRITICAL"
+  },
+  {
+    "pattern_id": "DA_007",
+    "class_label": "narcotics_bureau",
+    "name": "Fake Narcotics Bureau Scam",
+    "description": "Fraudsters impersonate Narcotics Control Bureau (NCB) or Anti-Narcotics Cell officers, claiming the victim's name was found in a drug trafficking network and threatening arrest unless a settlement payment is made.",
+    "trigger_keywords": ["NCB", "narcotics", "drugs", "drug trafficking", "anti-narcotics", "cocaine", "heroin", "drug network", "substance", "NDPS", "narcotic smuggling"],
+    "red_flags": [
+      "Caller claims your name appeared in an NCB drug trafficking investigation",
+      "Claims a drug consignment with your Aadhaar details was seized",
+      "Demands immediate payment to 'remove your name' from the investigation",
+      "Threatens arrest under NDPS Act (Narcotics Drugs and Psychotropic Substances)",
+      "Sends fake NCB notice or arrest warrant via WhatsApp",
+      "Escalates the call to a 'senior NCB officer' to increase pressure",
+      "Insists on secrecy — do not tell anyone about the call"
+    ],
+    "government_fact": "NCB never contacts citizens via phone about drug investigations. All NCB actions are conducted through official channels with proper court warrants. No agency accepts 'settlement payments' over the phone.",
+    "recommended_action": "Disconnect immediately. Do not pay or share details. Report at cybercrime.gov.in or call 1930. You can also call NCB headquarters to verify.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "CRITICAL"
+  },
+  {
+    "pattern_id": "DA_008",
+    "class_label": "courier_scam",
+    "name": "Fake Courier / Delivery Fraud",
+    "description": "Fraudsters pose as courier company representatives claiming an undelivered package or failed delivery attempt, tricking victims into paying fake delivery charges or sharing personal details to 'reschedule delivery'.",
+    "trigger_keywords": ["courier", "delivery", "undelivered", "package", "reschedule", "Amazon", "Flipkart", "Meesho", "delivery agent", "pending delivery", "return package", "delivery fee"],
+    "red_flags": [
+      "You receive a call about an undelivered package you did not order",
+      "Caller asks you to pay a 'redelivery fee' via UPI or wallet",
+      "Requests your home address and Aadhaar for 'KYC before delivery'",
+      "Sends a fake delivery slip or OTP for 'package unlock'",
+      "Claims the package contains a valuable gift or prize you've won",
+      "Asks you to click a link to 'track' the package (phishing link)",
+      "Threatens to destroy the package if you don't pay within 1 hour"
+    ],
+    "government_fact": "Legitimate courier companies like FedEx, DHL, DTDC, or India Post never demand UPI payments over phone for redelivery. Redelivery is always free or handled through official apps/websites.",
+    "recommended_action": "Do not pay. Do not click any links. Verify directly through the courier company's official website or app. Report at cybercrime.gov.in or 1930.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "MEDIUM"
+  }
+]

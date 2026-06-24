@@ -1,0 +1,111 @@
+# ─── Environment & Sensitive Credentials ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.pfx
+credentials.json
+secrets.json
+
+# ─── Python Environment ───────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ─── Machine Learning & Large Assets ─────────────────────────────────────────
+# Exclude raw dataset assets and weights to prevent pushing heavy binaries
+backend/saved_models/
+backend/data/training/
+backend/training/genuine/
+backend/training/fake/
+backend/training/test/
+*.h5
+*.onnx
+*.pb
+*.pt
+*.pth
+*.pkl
+*.zip
+*.tar.gz
+*.rar
+
+# ─── Databases ───────────────────────────────────────────────────────────────
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite3
+backend/CLARION.db
+
+# ─── Node & Frontend Build ────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/stats.html
+.npm
+/connect.lock
+
+# ─── IDEs & Editors ──────────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# ─── Logs & Diagnostics ───────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+backend/clarion.log
+
+# ─── OS Metadata ──────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── Temp Files ──────────────────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.bak
