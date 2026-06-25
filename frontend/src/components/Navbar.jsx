@@ -1,88 +1,104 @@
-import { NavLink, Link } from 'react-router-dom'
-import { Shield, Scan, AlertTriangle, MessageCircle, Info, Phone } from 'lucide-react'
-
-const navItems = [
-  { to: '/scan',     label: 'ScanShield', icon: Scan,          title: 'Detect Fake Currency' },
-  { to: '/scam',     label: 'ScamRadar',  icon: AlertTriangle, title: 'Check for Scams' },
-  { to: '/fraudbot', label: 'FraudBot',   icon: MessageCircle, title: 'Talk to AI Advisor' },
-  { to: '/about',    label: 'About',      icon: Info,          title: 'How It Works' },
-]
+import { Link, useLocation } from 'react-router-dom'
+import { Shield, Search, MessageSquare, AlertTriangle, Menu, X, Sun, Moon } from 'lucide-react'
+import { useState } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function Navbar() {
+  const location = useLocation()
+  const [isOpen, setIsOpen] = useState(false)
+  const { isDark, toggleTheme } = useTheme()
+
+  const links = [
+    { name: 'ScanShield', path: '/scan',     icon: Search },
+    { name: 'ScamRadar',  path: '/scam',     icon: AlertTriangle },
+    { name: 'FraudBot',   path: '/fraudbot', icon: MessageSquare },
+  ]
+
   return (
-    <nav className="sticky top-0 z-50 border-b border-clarion-border"
-         style={{ background: 'rgba(10,15,30,0.85)', backdropFilter: 'blur(20px)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+    <nav className="sticky top-0 z-50 bg-clarion-surface/80 backdrop-blur-xl border-b border-clarion-border transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 bg-clarion-accent rounded-xl flex items-center justify-center
-                            shadow-accent group-hover:scale-110 transition-transform duration-200">
-              <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
+          <Link to="/" className="flex items-center gap-2 group" onClick={() => setIsOpen(false)}>
+            <div className="w-9 h-9 rounded-xl bg-clarion-accent/10 border border-clarion-accent/20 flex items-center justify-center
+                            group-hover:bg-clarion-accent/20 transition-all duration-300">
+              <Shield className="w-5 h-5 text-clarion-accent" />
             </div>
-            <div className="hidden sm:block">
-              <span className="text-lg font-bold text-gradient">CLARION</span>
-              <p className="text-[10px] text-clarion-muted leading-none -mt-0.5 font-mono tracking-widest uppercase">
-                Digital Safety AI
-              </p>
-            </div>
+            <span className="font-outfit font-bold text-xl tracking-wide text-clarion-text">CLARION</span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map(({ to, label, icon: Icon, title }) => (
-              <NavLink
-                key={to}
-                to={to}
-                title={title}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                   ${isActive
-                     ? 'text-clarion-accent bg-clarion-accent/10'
-                     : 'text-clarion-muted hover:text-clarion-text hover:bg-clarion-border/30'
-                   }`
-                }
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </NavLink>
-            ))}
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-6">
+            {links.map((link) => {
+              const active = location.pathname === link.path
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`flex items-center gap-2 text-sm font-medium transition-all duration-200 px-3 py-2 rounded-lg
+                    ${active ? 'text-clarion-accent bg-clarion-accent/10' : 'text-clarion-muted hover:text-clarion-text hover:bg-clarion-surface2'}`}
+                >
+                  <link.icon className="w-4 h-4" />
+                  {link.name}
+                </Link>
+              )
+            })}
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 ml-2 rounded-xl bg-clarion-surface2 border border-clarion-border text-clarion-muted
+                         hover:text-clarion-accent hover:border-clarion-accent/50 transition-all duration-300"
+              aria-label="Toggle Theme"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
           </div>
 
-          {/* Emergency helpline */}
-          <a
-            href="tel:1930"
-            className="flex items-center gap-2 bg-clarion-danger/10 border border-clarion-danger/40
-                       text-clarion-danger rounded-full px-3 py-1.5 text-xs font-bold
-                       hover:bg-clarion-danger/20 transition-colors duration-200"
-            title="National Cyber Helpline — Available 24×7"
-          >
-            <Phone className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Helpline</span> 1930
-          </a>
-        </div>
-
-        {/* Mobile nav */}
-        <div className="md:hidden flex items-center justify-around pb-2 pt-1 border-t border-clarion-border/50">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all
-                 ${isActive
-                   ? 'text-clarion-accent'
-                   : 'text-clarion-muted hover:text-clarion-text'
-                 }`
-              }
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center gap-3">
+            {/* Theme Toggle (Mobile) */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-clarion-surface2 border border-clarion-border text-clarion-muted
+                         hover:text-clarion-accent transition-all duration-300"
             >
-              <Icon className="w-4.5 h-4.5" />
-              {label}
-            </NavLink>
-          ))}
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-xl text-clarion-muted hover:text-clarion-text hover:bg-clarion-surface2 transition-colors"
+            >
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-clarion-surface border-b border-clarion-border animate-fade-in absolute w-full shadow-xl">
+          <div className="px-4 py-3 space-y-1">
+            {links.map((link) => {
+              const active = location.pathname === link.path
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                    ${active ? 'bg-clarion-accent/10 text-clarion-accent' : 'text-clarion-muted hover:bg-clarion-surface2 hover:text-clarion-text'}`}
+                >
+                  <link.icon className="w-5 h-5" />
+                  {link.name}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

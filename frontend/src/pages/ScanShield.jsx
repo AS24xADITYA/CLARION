@@ -72,13 +72,13 @@ export default function ScanShield() {
 
         {/* Page header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-clarion-accent/20 rounded-xl flex items-center justify-center">
-              <Scan className="w-5 h-5 text-clarion-accent" />
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-12 h-12 bg-clarion-surface2 border border-clarion-border rounded-xl flex items-center justify-center shadow-sm">
+              <Scan className="w-6 h-6 text-clarion-accent" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-clarion-text">ScanShield</h1>
-              <p className="text-clarion-muted text-sm">Counterfeit Currency Detector</p>
+              <h1 className="text-3xl font-outfit font-bold text-clarion-text tracking-tight">ScanShield</h1>
+              <p className="text-clarion-muted text-sm font-medium mt-0.5">Counterfeit Currency Detector</p>
             </div>
           </div>
           <p className="text-clarion-muted text-sm max-w-xl">

@@ -314,12 +314,12 @@ export default function FraudBot() {
       {/* ── Chat Header ───────────────────────────────────────────────────── */}
       <div className="glass-card sm:rounded-t-2xl rounded-none flex items-center gap-3 px-4 py-3
                       border-b border-clarion-border flex-shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-clarion-accent/20 flex items-center justify-center">
-          <MessageCircle className="w-5 h-5 text-clarion-accent" />
+        <div className="w-12 h-12 bg-clarion-surface2 border border-clarion-border rounded-xl flex items-center justify-center shadow-sm">
+          <MessageCircle className="w-6 h-6 text-clarion-accent" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-clarion-text leading-tight">FraudBot</p>
-          <p className="text-xs text-clarion-muted">Multilingual Fraud Advisor · 6 Languages</p>
+          <p className="font-outfit font-bold text-2xl text-clarion-text tracking-tight">FraudBot</p>
+          <p className="text-xs text-clarion-muted font-medium mt-0.5">Multilingual Fraud Advisor · 6 Languages</p>
         </div>
 
         {/* Mode badge */}

@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Base Reset ─────────────────────────────────────────────────────────── */
+/* ─── Base Reset & Theme Variables ───────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
@@ -10,8 +12,48 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  /* Light Theme (Clean, Modern, Enterprise) */
+  --clarion-bg: 248 250 252;
+  --clarion-surface: 255 255 255;
+  --clarion-surface2: 241 245 249;
+  --clarion-primary: 15 23 42;
+  --clarion-accent: 37 99 235;
+  --clarion-danger: 220 38 38;
+  --clarion-success: 22 163 74;
+  --clarion-warning: 217 119 6;
+  --clarion-text: 15 23 42;
+  --clarion-muted: 100 116 139;
+  --clarion-border: 226 232 240;
+
+  --hero-grad-start: #F8FAFC;
+  --hero-grad-mid: #E2E8F0;
+  --card-grad-start: #FFFFFF;
+  --card-grad-end: #F8FAFC;
+}
+
+.dark {
+  /* Dark Theme (Sleek, Deep Navy) */
+  --clarion-bg: 10 15 30;
+  --clarion-surface: 17 24 39;
+  --clarion-surface2: 26 34 53;
+  --clarion-primary: 31 56 100;
+  --clarion-accent: 59 130 246;
+  --clarion-danger: 220 38 38;
+  --clarion-success: 22 163 74;
+  --clarion-warning: 217 119 6;
+  --clarion-text: 249 250 251;
+  --clarion-muted: 156 163 175;
+  --clarion-border: 31 41 55;
+
+  --hero-grad-start: #0A0F1E;
+  --hero-grad-mid: #1F3864;
+  --card-grad-start: #111827;
+  --card-grad-end: #1A2235;
+}
+
 body {
-  @apply bg-clarion-bg text-clarion-text font-sans antialiased;
+  @apply bg-clarion-bg text-clarion-text font-sans antialiased transition-colors duration-300;
   min-height: 100dvh;
   overflow-x: hidden;
 }
@@ -29,13 +71,12 @@ body {
 
   /* Glass card */
   .glass-card {
-    @apply bg-clarion-surface rounded-2xl shadow-glass border border-clarion-border;
-    backdrop-filter: blur(12px);
+    @apply bg-clarion-surface/80 rounded-2xl shadow-glass border border-clarion-border backdrop-blur-xl transition-all duration-300;
   }
 
   /* Primary button */
   .btn-primary {
-    @apply bg-clarion-accent hover:bg-blue-500 text-white font-semibold
+    @apply bg-clarion-accent hover:opacity-90 text-white font-semibold
            px-6 py-3 rounded-xl transition-all duration-200
            shadow-accent hover:shadow-lg hover:-translate-y-0.5
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
@@ -43,7 +84,7 @@ body {
 
   /* Danger button */
   .btn-danger {
-    @apply bg-clarion-danger hover:bg-red-500 text-white font-semibold
+    @apply bg-clarion-danger hover:opacity-90 text-white font-semibold
            px-6 py-3 rounded-xl transition-all duration-200
            shadow-danger hover:shadow-lg hover:-translate-y-0.5;
   }
@@ -65,7 +106,7 @@ body {
 
   /* Section heading */
   .section-heading {
-    @apply text-2xl font-bold text-clarion-text tracking-tight;
+    @apply text-2xl font-bold font-outfit text-clarion-text tracking-tight;
   }
 
   /* Verdict badge — genuine */
@@ -82,7 +123,7 @@ body {
 
   /* Verdict badge — uncertain */
   .verdict-uncertain {
-    @apply bg-yellow-900/60 border border-yellow-600 text-yellow-300 px-4 py-2
+    @apply bg-clarion-warning/20 border border-clarion-warning text-clarion-warning px-4 py-2
            rounded-full font-bold text-sm uppercase tracking-widest;
   }
 
@@ -95,7 +136,7 @@ body {
   /* Nav link */
   .nav-link {
     @apply text-clarion-muted hover:text-clarion-text font-medium px-4 py-2
-           rounded-lg transition-all duration-200 hover:bg-clarion-border/30;
+           rounded-lg transition-all duration-200 hover:bg-clarion-border/50;
   }
 
   .nav-link.active {
@@ -112,21 +153,21 @@ body {
   .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
   /* Risk meter arc colors */
-  .risk-low    { stroke: #16A34A; }
-  .risk-medium { stroke: #D97706; }
-  .risk-high   { stroke: #DC2626; }
+  .risk-low    { stroke: rgb(var(--clarion-success)); }
+  .risk-medium { stroke: rgb(var(--clarion-warning)); }
+  .risk-high   { stroke: rgb(var(--clarion-danger)); }
 }
 
 /* ─── Utility Overrides ──────────────────────────────────────────────────── */
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+    background: linear-gradient(135deg, rgb(var(--clarion-accent)), #60A5FA);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-danger {
-    background: linear-gradient(135deg, #DC2626, #F87171);
+    background: linear-gradient(135deg, rgb(var(--clarion-danger)), #F87171);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
