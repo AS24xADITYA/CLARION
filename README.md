@@ -44,7 +44,7 @@ CLARION is designed to run seamlessly regardless of your hardware capabilities. 
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/CLARION.git
+git clone https://github.com/AS24xADITYA/CLARION.git
 cd CLARION
 ```
 
