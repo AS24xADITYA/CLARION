@@ -1,12 +1,20 @@
 """
 CLARION FraudBot — Multilingual LLM Integration
 ================================================
-Smart dual-mode wrapper:
-  Mode A (Ollama):  Mistral-7B-Instruct via Ollama. Full LLM with structured
-                    system prompt, 6-language support, and risk tag parsing.
-  Mode B (Fallback): StructuredFraudAssessor — a stateful 4-question rule
+Smart tri-mode wrapper with priority fallback chain:
+
+  Mode A (Ollama):  Mistral-7B-Instruct via Ollama. Full local LLM with
+                    structured system prompt, 6-language support, and
+                    risk tag parsing. Zero cost, zero internet required.
+
+  Mode B (Groq):    Llama3-8b-8192 via Groq Cloud API. Free-tier cloud LLM.
+                    Activated when Ollama is not running. Requires a free
+                    GROQ_API_KEY in the .env file.
+
+  Mode C (Fallback): StructuredFraudAssessor — a stateful 4-question rule
                     engine that mirrors the LLM's exact assessment flow.
                     Produces the same JSON schema and genuine risk verdicts.
+                    Works 100% offline, zero dependencies.
 
 The fallback is a real fraud assessment system, not a chatbot simulation.
 It conducts the same 4-step interview and applies the same risk logic.
@@ -57,38 +65,38 @@ STEP_QUESTIONS = {
     "en": {
         1: "Hello! I am FraudBot, your personal fraud safety advisor. To help you assess if you have been targeted by fraud, please tell me: **Who contacted you and how?** (For example: a phone call, WhatsApp message, video call, or SMS)",
         2: "Thank you. Now please tell me: **What did they claim or demand from you?** (For example: claimed to be a government officer, said your account is in trouble, offered a prize, etc.)",
-        3: "I understand. This is important: **Did they ask for any of the following?**\n- Money or bank transfer\n- OTP (One Time Password)\n- Aadhaar or PAN number\n- Net banking password or PIN\n- Personal documents",
-        4: "Almost done. One final question: **Did they threaten or demand any of the following?**\n- Arrest or police action\n- Account freeze or legal notice\n- Told you to keep the call secret\n- Said you must act immediately or face consequences",
+        3: "I understand. This is important: **Did they ask for any of the following?**\n• Money or bank transfer\n• OTP (One Time Password)\n• Aadhaar or PAN number\n• Net banking password or PIN\n• Personal documents",
+        4: "Almost done. One final question: **Did they threaten or demand any of the following?**\n• Arrest or police action\n• Account freeze or legal notice\n• Told you to keep the call secret\n• Said you must act immediately or face consequences",
     },
     "hi": {
         1: "नमस्ते! मैं FraudBot हूँ, आपका व्यक्तिगत धोखाधड़ी सुरक्षा सलाहकार। कृपया बताएं: **आपसे किसने और कैसे संपर्क किया?** (उदाहरण: फोन कॉल, WhatsApp, वीडियो कॉल, SMS)",
         2: "धन्यवाद। अब बताएं: **उन्होंने क्या दावा किया या क्या मांगा?** (उदाहरण: सरकारी अधिकारी बताया, खाता समस्या कही, पुरस्कार की बात की, आदि)",
-        3: "समझ गया। यह जरूरी है: **क्या उन्होंने इनमें से कुछ माँगा?**\n- पैसे या बैंक ट्रांसफर\n- OTP (वन टाइम पासवर्ड)\n- आधार या PAN नंबर\n- नेट बैंकिंग पासवर्ड या PIN\n- व्यक्तिगत दस्तावेज़",
-        4: "लगभग हो गया। अंतिम प्रश्न: **क्या उन्होंने धमकी दी या कुछ ऐसा कहा?**\n- गिरफ्तारी या पुलिस कार्रवाई\n- खाता फ्रीज या कानूनी नोटिस\n- कॉल को गुप्त रखने को कहा\n- तुरंत कार्रवाई नहीं की तो नुकसान होगा",
+        3: "समझ गया। यह जरूरी है: **क्या उन्होंने इनमें से कुछ माँगा?**\n• पैसे या बैंक ट्रांसफर\n• OTP (वन टाइम पासवर्ड)\n• आधार या PAN नंबर\n• नेट बैंकिंग पासवर्ड या PIN\n• व्यक्तिगत दस्तावेज़",
+        4: "लगभग हो गया। अंतिम प्रश्न: **क्या उन्होंने धमकी दी या कुछ ऐसा कहा?**\n• गिरफ्तारी या पुलिस कार्रवाई\n• खाता फ्रीज या कानूनी नोटिस\n• कॉल को गुप्त रखने को कहा\n• तुरंत कार्रवाई नहीं की तो नुकसान होगा",
     },
     "mr": {
         1: "नमस्कार! मी FraudBot आहे, तुमचा वैयक्तिक फसवणूक सुरक्षा सल्लागार. कृपया सांगा: **तुमच्याशी कोणी आणि कसे संपर्क केला?** (उदा: फोन कॉल, WhatsApp, व्हिडिओ कॉल, SMS)",
         2: "धन्यवाद. आता सांगा: **त्यांनी काय सांगितले किंवा काय मागितले?**",
-        3: "महत्त्वाचे: **त्यांनी यापैकी काही मागितले का?**\n- पैसे किंवा बँक ट्रान्सफर\n- OTP\n- आधार किंवा PAN\n- नेट बँकिंग पासवर्ड\n- वैयक्तिक कागदपत्रे",
-        4: "शेवटचा प्रश्न: **त्यांनी धमकी दिली का?**\n- अटक किंवा पोलीस कारवाई\n- खाते गोठवणे\n- कोणाला सांगू नका असे म्हटले\n- लगेच कार्य करा नाहीतर नुकसान",
+        3: "महत्त्वाचे: **त्यांनी यापैकी काही मागितले का?**\n• पैसे किंवा बँक ट्रान्सफर\n• OTP\n• आधार किंवा PAN\n• नेट बँकिंग पासवर्ड\n• वैयक्तिक कागदपत्रे",
+        4: "शेवटचा प्रश्न: **त्यांनी धमकी दिली का?**\n• अटक किंवा पोलीस कारवाई\n• खाते गोठवणे\n• कोणाला सांगू नका असे म्हटले\n• लगेच कार्य करा नाहीतर नुकसान",
     },
     "ta": {
         1: "வணக்கம்! நான் FraudBot, உங்கள் மோசடி பாதுகாப்பு ஆலோசகர். கூறுங்கள்: **உங்களை யார் எப்படி தொடர்பு கொண்டனர்?** (தொலைபேசி, WhatsApp, வீடியோ அழைப்பு, SMS)",
         2: "நன்றி. இப்போது கூறுங்கள்: **அவர்கள் என்ன கூறினர் அல்லது என்ன கேட்டனர்?**",
-        3: "முக்கியமானது: **அவர்கள் இவற்றில் ஏதாவது கேட்டனரா?**\n- பணம் அல்லது வங்கி பரிமாற்றம்\n- OTP\n- ஆதார் அல்லது PAN\n- நிகர வங்கி கடவுச்சொல்\n- தனிப்பட்ட ஆவணங்கள்",
-        4: "கடைசி கேள்வி: **அவர்கள் அச்சுறுத்தினரா?**\n- கைது அல்லது காவல்துறை நடவடிக்கை\n- கணக்கு முடக்கம்\n- யாரிடமும் சொல்லாதீர்கள்\n- உடனடியாக செயல்படுங்கள்",
+        3: "முக்கியமானது: **அவர்கள் இவற்றில் ஏதாவது கேட்டனரா?**\n• பணம் அல்லது வங்கி பரிமாற்றம்\n• OTP\n• ஆதார் அல்லது PAN\n• நிகர வங்கி கடவுச்சொல்\n• தனிப்பட்ட ஆவணங்கள்",
+        4: "கடைசி கேள்வி: **அவர்கள் அச்சுறுத்தினரா?**\n• கைது அல்லது காவல்துறை நடவடிக்கை\n• கணக்கு முடக்கம்\n• யாரிடமும் சொல்லாதீர்கள்\n• உடனடியாக செயல்படுங்கள்",
     },
     "te": {
         1: "నమస్కారం! నేను FraudBot, మీ మోసం నిరోధక సహాయకుడను. చెప్పండి: **మీతో ఎవరు ఎలా సంప్రదించారు?** (ఫోన్ కాల్, WhatsApp, వీడియో కాల్, SMS)",
         2: "ధన్యవాదాలు. ఇప్పుడు చెప్పండి: **వారు ఏమి చెప్పారు లేదా ఏమి అడిగారు?**",
-        3: "ముఖ్యమైనది: **వారు ఇవి అడిగారా?**\n- డబ్బు లేదా బ్యాంక్ బదిలీ\n- OTP\n- ఆధార్ లేదా PAN\n- నెట్ బ్యాంకింగ్ పాస్వర్డ్\n- వ్యక్తిగత పత్రాలు",
-        4: "చివరి ప్రశ్న: **వారు బెదిరించారా?**\n- అరెస్ట్ లేదా పోలీసు చర్య\n- ఖాతా స్తంభింపు\n- ఎవరికీ చెప్పవద్దు అన్నారా\n- వెంటనే చేయకపోతే నష్టం",
+        3: "ముఖ్యమైనది: **వారు ఇవి అడిగారా?**\n• డబ్బు లేదా బ్యాంక్ బదిలీ\n• OTP\n• ఆధార్ లేదా PAN\n• నెట్ బ్యాంకింగ్ పాస్వర్డ్\n• వ్యక్తిగత పత్రాలు",
+        4: "చివరి ప్రశ్న: **వారు బెదిరించారా?**\n• అరెస్ట్ లేదా పోలీసు చర్య\n• ఖాతా స్తంభింపు\n• ఎవరికీ చెప్పవద్దు అన్నారా\n• వెంటనే చేయకపోతే నష్టం",
     },
     "bn": {
         1: "নমস্কার! আমি FraudBot, আপনার ব্যক্তিগত প্রতারণা সুরক্ষা উপদেষ্টা। বলুন: **আপনার সাথে কে কীভাবে যোগাযোগ করেছে?** (ফোন, WhatsApp, ভিডিও কল, SMS)",
         2: "ধন্যবাদ। এখন বলুন: **তারা কী দাবি করেছে বা কী চেয়েছে?**",
-        3: "গুরুত্বপূর্ণ: **তারা কি এগুলো চেয়েছে?**\n- টাকা বা ব্যাংক ট্রান্সফার\n- OTP\n- আধার বা PAN\n- নেট ব্যাংকিং পাসওয়ার্ড\n- ব্যক্তিগত নথি",
-        4: "শেষ প্রশ্ন: **তারা কি হুমকি দিয়েছে?**\n- গ্রেফতার বা পুলিশ অ্যাকশন\n- অ্যাকাউন্ট ফ্রিজ\n- কাউকে বলবেন না\n- এখনই না করলে ক্ষতি হবে",
+        3: "গুরুত্বপূর্ণ: **তারা কি এগুলো চেয়েছে?**\n• টাকা বা ব্যাংক ট্রান্সফার\n• OTP\n• আধার বা PAN\n• নেট ব্যাংকিং পাসওয়ার্ড\n• ব্যক্তিগত নথি",
+        4: "শেষ প্রশ্ন: **তারা কি হুমকি দিয়েছে?**\n• গ্রেফতার বা পুলিশ অ্যাকশন\n• অ্যাকাউন্ট ফ্রিজ\n• কাউকে বলবেন না\n• এখনই না করলে ক্ষতি হবে",
     },
 }
 
@@ -167,27 +175,33 @@ MEDIUM_RISK_RESPONSES = {
 class FraudBotLLM:
     """
     Multilingual conversational fraud risk assessor.
-    Auto-selects Mistral-7B via Ollama (if available) or
-    StructuredFraudAssessor (4-step rule engine fallback).
+    Priority fallback chain:
+      1. Mistral-7B / Gemma-2b via Ollama (local, fully offline)
+      2. Llama3-8b-8192 via Groq Cloud API (free tier, requires GROQ_API_KEY)
+      3. StructuredFraudAssessor (4-step rule engine, 100% offline)
     """
 
     def __init__(self):
         self.ollama_available = False
+        self.groq_available = False
         self.model_name = None
         self.model_type = "rule_based"
         self._try_connect_ollama()
+        if not self.ollama_available:
+            self._try_connect_groq()
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Connection setup
+    # ──────────────────────────────────────────────────────────────────────────
 
     def _try_connect_ollama(self):
         """Check if Ollama is running and has the required model."""
-        ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        ollama_host   = os.getenv("OLLAMA_HOST", "http://localhost:11434")
         primary_model = os.getenv("OLLAMA_MODEL", "mistral")
         fallback_model = os.getenv("OLLAMA_FALLBACK_MODEL", "gemma:2b")
 
         try:
             import ollama
-            import httpx
-
-            # Test connection
             client = ollama.Client(host=ollama_host)
             available_models = [m.model for m in client.list().models]
 
@@ -195,24 +209,49 @@ class FraudBotLLM:
                 self.model_name = primary_model
             elif fallback_model in available_models or any(fallback_model in m for m in available_models):
                 self.model_name = fallback_model
-                logger.info("[FraudBot] Primary model not found. Using fallback: %s", fallback_model)
+                logger.info("[FraudBot] Primary Ollama model not found. Using fallback: %s", fallback_model)
 
             if self.model_name:
                 self.ollama_available = True
                 self.model_type = "ollama_llm"
                 self.ollama_client = client
-                logger.info("[FraudBot] Connected to Ollama. Model: %s", self.model_name)
+                logger.info("[FraudBot] ✅ Ollama connected. Model: %s", self.model_name)
             else:
                 logger.info(
-                    "[FraudBot] Ollama running but required models not pulled. "
-                    "Using StructuredFraudAssessor fallback."
+                    "[FraudBot] Ollama running but no supported models found. "
+                    "Run: ollama pull mistral"
                 )
         except Exception as e:
-            logger.info(
-                "[FraudBot] Ollama not available (%s). "
-                "Using StructuredFraudAssessor fallback.",
-                type(e).__name__,
+            logger.info("[FraudBot] Ollama not available (%s).", type(e).__name__)
+
+    def _try_connect_groq(self):
+        """Check if a Groq API key is configured and the groq library is installed."""
+        groq_api_key = os.getenv("GROQ_API_KEY", "").strip()
+
+        if not groq_api_key:
+            logger.info("[FraudBot] GROQ_API_KEY not set. Skipping Groq fallback.")
+            return
+
+        try:
+            from groq import Groq
+            # Do a lightweight connectivity check
+            client = Groq(api_key=groq_api_key)
+            # Test with a minimal prompt to validate the key
+            test = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": "Hi"}],
+                max_tokens=5,
             )
+            if test.choices:
+                self.groq_client = client
+                self.groq_available = True
+                self.model_type = "groq_llm"
+                self.model_name = "llama3-8b-8192"
+                logger.info("[FraudBot] ✅ Groq Cloud connected. Model: llama3-8b-8192")
+        except ImportError:
+            logger.info("[FraudBot] groq package not installed. Run: pip install groq")
+        except Exception as e:
+            logger.warning("[FraudBot] Groq connection failed (%s). Using rule-based fallback.", type(e).__name__)
 
     # ──────────────────────────────────────────────────────────────────────────
     # Public interface
@@ -241,11 +280,13 @@ class FraudBotLLM:
         """
         if self.ollama_available:
             return self._run_ollama(message, history, language)
+        elif self.groq_available:
+            return self._run_groq(message, history, language)
         else:
             return self._run_rule_based(message, history, language)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # Ollama / LLM path
+    # Ollama / local LLM path
     # ──────────────────────────────────────────────────────────────────────────
 
     def _run_ollama(self, message: str, history: list, language: str) -> dict:
@@ -264,22 +305,45 @@ class FraudBotLLM:
                 messages=messages,
             )
             raw_text = response.message.content
-
             return self._parse_response(raw_text)
 
         except Exception as e:
             logger.error("[FraudBot] Ollama inference error: %s", e)
-            return {
-                "response": (
-                    "I'm temporarily unable to connect to the AI engine. "
-                    "Please call **National Cyber Helpline: 1930** for immediate fraud assistance. "
-                    "This service is available 24×7 and toll-free."
-                ),
-                "risk_level": None,
-                "show_report_button": False,
-                "helpline": "1930",
-                "model_type": self.model_type,
-            }
+            # Graceful degradation: try Groq, then rule-based
+            if self.groq_available:
+                logger.info("[FraudBot] Falling back to Groq after Ollama error.")
+                return self._run_groq(message, history, language)
+            return self._run_rule_based(message, history, language)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Groq Cloud LLM path
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _run_groq(self, message: str, history: list, language: str) -> dict:
+        """Send conversation to Groq Cloud API and parse response."""
+        try:
+            language_name = LANGUAGE_MAP.get(language, "English")
+            system_prompt = SYSTEM_PROMPT_TEMPLATE.format(language=language_name)
+
+            messages = [{"role": "system", "content": system_prompt}]
+            for turn in history:
+                messages.append({"role": turn["role"], "content": turn["content"]})
+            messages.append({"role": "user", "content": message})
+
+            response = self.groq_client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=messages,
+                temperature=0.3,
+                max_tokens=800,
+            )
+            raw_text = response.choices[0].message.content
+            return self._parse_response(raw_text)
+
+        except Exception as e:
+            logger.error("[FraudBot] Groq inference error: %s", e)
+            # Final graceful degradation to rule-based
+            logger.info("[FraudBot] Falling back to rule-based after Groq error.")
+            return self._run_rule_based(message, history, language)
 
     # ──────────────────────────────────────────────────────────────────────────
     # StructuredFraudAssessor (rule-based 4-step fallback)
@@ -304,7 +368,6 @@ class FraudBotLLM:
             user_answers.append(message)
 
         if current_step == 1:
-            # First message — ask step 1 question
             response_text = questions[1]
             risk_level = None
 
@@ -349,18 +412,17 @@ class FraudBotLLM:
 
         low_signals = ["friend", "relative", "family", "known person", "colleague"]
 
-        high_count = sum(1 for s in HIGH_SIGNALS if s in full_context)
+        high_count   = sum(1 for s in HIGH_SIGNALS   if s in full_context)
         medium_count = sum(1 for s in MEDIUM_SIGNALS if s in full_context)
-        low_count = sum(1 for s in low_signals if s in full_context)
 
         if high_count >= 2 or (high_count >= 1 and medium_count >= 1):
-            risk_level = "HIGH"
+            risk_level    = "HIGH"
             response_text = HIGH_RISK_RESPONSES.get(lang, HIGH_RISK_RESPONSES["en"])
         elif medium_count >= 2 or high_count == 1:
-            risk_level = "MEDIUM"
+            risk_level    = "MEDIUM"
             response_text = MEDIUM_RISK_RESPONSES.get(lang, MEDIUM_RISK_RESPONSES["en"])
         else:
-            risk_level = "LOW"
+            risk_level    = "LOW"
             response_text = LOW_RISK_RESPONSES.get(lang, LOW_RISK_RESPONSES["en"])
 
         return risk_level, response_text
