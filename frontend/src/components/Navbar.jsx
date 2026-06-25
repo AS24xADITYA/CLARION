@@ -24,9 +24,9 @@ export default function Navbar() {
             <img 
               src={isDark ? '/Dark_Mode_Logo.png' : '/Light_Mode_Logo.png'} 
               alt="CLARION Logo" 
-              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform duration-300"
+              className="h-24 w-auto object-contain group-hover:scale-105 transition-transform duration-300 -my-4"
             />
-            <span className="font-outfit font-bold text-xl tracking-wide text-clarion-text">CLARION</span>
+            <span className="font-outfit font-bold text-2xl tracking-wide text-clarion-text">CLARION</span>
           </Link>
 
           {/* Desktop Menu */}
