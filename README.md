@@ -1,160 +1,175 @@
-# CLARION — AI-powered Digital Public Safety Platform
+<div align="center">
+  <img src="frontend/public/Dark_Mode_Logo.png" alt="CLARION Logo" width="120" />
+  <h1>CLARION</h1>
+  <p><b>AI-Powered Threat Intelligence & Digital Public Safety Platform</b></p>
+  <p>Defeating Counterfeiting, Fraud & Digital Arrest Scams</p>
 
-**CLARION Threat Intelligence & Public Safety**
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+  [![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+  [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![TailwindCSS](https://img.shields.io/badge/Style-Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+</div>
 
-> Defeating Counterfeiting, Fraud & Digital Arrest Scams
+<br />
 
-CLARION is a three-component AI platform that puts fraud detection in every Indian citizen's hands — for free, in 6 languages, offline-capable.
-
----
-
-## Components
-
-| Component | What It Does | Tech |
-|---|---|---|
-| **ScanShield** | Detects counterfeit ₹500 / ₹2000 notes via camera | EfficientNet-B0 + OpenCV |
-| **ScamRadar** | Classifies digital arrest scam descriptions into 9 categories | DistilBERT + TF-IDF |
-| **FraudBot** | Multilingual conversational fraud risk assessor | Mistral-7B via Ollama |
+CLARION is a comprehensive, three-tier AI platform designed to put enterprise-grade fraud detection directly into the hands of Indian citizens. It operates completely free of charge, supports 6 regional languages, and features a dual-mode architecture capable of running fully offline on local hardware or via cloud fallbacks.
 
 ---
 
-## Quick Start
+## 🛡️ Core Components
 
-### Step 1 — Backend
+| Component | What It Does | Technology Stack |
+|:---|:---|:---|
+| **ScanShield** | Detects counterfeit ₹500 and ₹2000 currency notes via live camera feed or uploaded images. | **EfficientNet-B0** (CV) + OpenCV |
+| **ScamRadar** | Classifies suspicious texts and digital arrest scam descriptions against 8 known fraud patterns. | **DistilBERT** (NLP) + TF-IDF |
+| **FraudBot** | A multilingual conversational fraud risk assessor that conducts structured risk evaluations. | **Mistral-7B** (Local LLM via Ollama) / **Groq Cloud** API |
+
+---
+
+## ⚡ Dual-Mode Architecture
+
+CLARION is designed to run seamlessly regardless of your hardware capabilities. It employs a smart fallback system for all its models:
+
+- **AI Mode (Enterprise)**: Utilizes deep learning models (EfficientNet, DistilBERT, Mistral-7B). Requires GPU/high-CPU for local inference or a Groq API key.
+- **Offline / Fallback Mode**: If the heavy AI models are missing, CLARION gracefully degrades to highly optimized heuristics (OpenCV edge detection, TF-IDF NLP classification, and Rule-based assessment) ensuring the platform never breaks during a live demo.
+
+---
+
+## 🚀 Complete Setup Guide
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- Git
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/CLARION.git
+cd CLARION
+```
+
+### 2. Backend Setup
+The backend is powered by FastAPI and handles all the AI inference and intelligence routing.
 
 ```bash
-# In the CLARION root directory (not backend/)
+# Create and activate a virtual environment
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Linux/Mac
 
-# Navigate to backend and install
+# Windows
+venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
+
+# Install dependencies
 cd backend
 pip install -r requirements.txt
 
-# Copy env file
+# Setup environment variables
 copy .env.example .env
-
-# Start backend
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Backend will be live at: http://localhost:8000  
-API docs: http://localhost:8000/docs
+**Configuring the LLM (FraudBot)**
+Open the `backend/.env` file. You have two options for the LLM:
+1. **Local (Ollama)**: Leave as default if you have Ollama installed locally.
+2. **Cloud (Groq - Recommended for easy setup)**: Get a free API key from [console.groq.com](https://console.groq.com) and add it to `.env`:
+   ```env
+   GROQ_API_KEY=gsk_your_key_here
+   ```
 
-### Step 2 — Frontend
+**Start the Backend Server**
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+*API Documentation is automatically available at: http://localhost:8000/docs*
+
+### 3. Frontend Setup
+The frontend is a modern React application utilizing Tailwind CSS and a dynamic Light/Dark mode design system.
 
 ```bash
-# Navigate to frontend
+# Open a new terminal window
 cd frontend
 
 # Install packages
 npm install
 
-# Start development server
+# Start the development server
 npm run dev
 ```
-
-Frontend will be live at: http://localhost:5173
-
-### Step 3 — (Optional) Ollama for FraudBot LLM
-
-```bash
-# Install Ollama from https://ollama.ai/download
-# Then pull the model (4.1 GB):
-ollama pull mistral
-
-# Keep this running in a separate terminal:
-ollama serve
-```
-
-> Without Ollama, FraudBot uses the built-in 4-step rule-based assessor (fully functional for demo).
+*The application will be live at: http://localhost:5173*
 
 ---
 
-## Upgrading to Real AI Models (via Google Colab)
+## 🧠 Upgrading to Real AI Models
 
-The app works without trained models using intelligent fallbacks. To upgrade to real AI:
+Out of the box, CLARION will use its offline fallback modes. To upgrade the platform to use the real Machine Learning models, you have two options:
 
-### ScanShield (EfficientNet-B0)
-1. Open `docs/colab/ScanShield_Training.ipynb` in Google Colab
-2. Upload 20+ genuine ₹500/₹2000 note images (download from RBI website)
-3. Run all cells — takes ~20 minutes on Colab GPU
-4. Download `scan_efficientnet.h5` and place at `backend/saved_models/scan_efficientnet.h5`
-5. Restart backend — logs will show `[ScanShield] Loaded EfficientNet model`
+### Option A: Download Pre-trained Models (Fastest)
+If you just want to run the platform immediately, you can download our pre-trained models from Google Drive:
+1. **Download ScanShield Model**: [https://drive.google.com/file/d/1MoFufKtwuTmgdlBh4nZzujZ3W4Mw28da/view?usp=sharing]
+2. **Download ScamRadar Model**: [https://drive.google.com/file/d/1MrAOSv4Uu9eNRUP99tp-6c2haqWpK2Ax/view?usp=sharing]
+3. Place `scan_efficientnet.h5` in `backend/saved_models/`
+4. Extract `scam_distilbert.zip` into `backend/saved_models/scam_distilbert/`
 
-### ScamRadar (DistilBERT)
-1. Open `docs/colab/ScamRadar_Training.ipynb` in Google Colab
-2. Run all cells — training data is pre-included, no uploads needed
-3. Download `scam_distilbert.zip` → extract to `backend/saved_models/scam_distilbert/`
-4. Restart backend — logs will show `[ScamRadar] Loaded DistilBERT model`
+### Option B: Train from Scratch (Colab)
+If you want to train the models yourself:
+
+#### ScanShield (Computer Vision)
+1. Navigate to `docs/colab/ScanShield_Training.ipynb` and open it in Google Colab.
+2. Upload 20+ genuine and fake ₹500/₹2000 note images.
+3. Run all cells to train the EfficientNet model (takes ~20 minutes on a T4 GPU).
+4. Download the generated `scan_efficientnet.h5` file.
+5. Place it exactly at: `backend/saved_models/scan_efficientnet.h5`
+6. Restart the backend. You will see `[ScanShield] Loaded EfficientNet model` in the terminal logs.
+
+### ScamRadar (NLP Classifier)
+1. Navigate to `docs/colab/ScamRadar_Training.ipynb` and open it in Google Colab.
+2. Run all cells (the training dataset of 1,350+ labeled samples is already included in the repo).
+3. Download the generated `scam_distilbert.zip`.
+4. Extract the contents directly into: `backend/saved_models/scam_distilbert/`
+5. Restart the backend. You will see `[ScamRadar] Loaded DistilBERT model` in the terminal logs.
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
-```
+```text
 CLARION/
 ├── backend/
-│   ├── main.py                    # FastAPI entry point
-│   ├── requirements.txt
-│   ├── .env
-│   ├── api/
-│   │   ├── routes_scan.py         # POST /api/scan
-│   │   ├── routes_scam.py         # POST /api/scam/classify, GET /api/scam/patterns
-│   │   └── routes_fraudbot.py     # POST /api/fraudbot/chat
-│   ├── models/
-│   │   ├── scan_model.py          # EfficientNet + OpenCV fallback
-│   │   ├── scam_classifier.py     # DistilBERT + TF-IDF fallback
-│   │   └── fraudbot_llm.py        # Ollama + rule-based fallback
-│   ├── data/
-│   │   ├── scam_patterns.json     # Full 8-pattern knowledge base
-│   │   └── scam_training.json     # 1350+ labelled training samples
-│   ├── db/
-│   │   ├── database.py
-│   │   └── models_db.py
-│   └── saved_models/              # Place trained models here (gitignored)
+│   ├── api/                   # FastAPI route handlers
+│   ├── models/                # AI model wrappers & logic
+│   ├── data/                  # Scam patterns & training datasets
+│   ├── db/                    # SQLite database config
+│   ├── saved_models/          # Directory for .h5 and transformer weights
+│   ├── main.py                # Backend entry point
+│   └── requirements.txt
 ├── frontend/
+│   ├── public/                # Logos and static assets
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── pages/
-│   │   │   ├── Home.jsx
-│   │   │   ├── ScanShield.jsx
-│   │   │   ├── ScamRadar.jsx
-│   │   │   ├── FraudBot.jsx
-│   │   │   └── About.jsx
-│   │   ├── components/            # 7 reusable components
-│   │   └── services/api.js
+│   │   ├── components/        # Reusable React UI components
+│   │   ├── contexts/          # Theme context (Light/Dark mode)
+│   │   ├── pages/             # Main application views
+│   │   └── services/          # API integration layer
+│   ├── tailwind.config.js     # CSS variables & design system
 │   └── package.json
-└── docs/
-    ├── colab/
-    │   ├── ScanShield_Training.ipynb
-    │   └── ScamRadar_Training.ipynb
-    └── demo_script.md
+└── docs/                      # Colab notebooks for model training
 ```
 
 ---
 
-## API Reference
-
-| Endpoint | Method | Description |
-|---|---|---|
-| `/health` | GET | System health + all service status |
-| `/api/scan` | POST | Currency note scan (multipart image) |
-| `/api/scam/classify` | POST | Scam text classification |
-| `/api/scam/patterns` | GET | All 8 scam patterns |
-| `/api/scam/stats` | GET | Detection statistics |
-| `/api/fraudbot/chat` | POST | FraudBot conversation |
-
-Interactive docs: http://localhost:8000/docs
+## 🔒 Security & Privacy
+- **Zero Data Retention**: CLARION does not log user queries, scanned images, or chat transcripts. Session state is stored entirely in memory and cleared on exit.
+- **Environment Safety**: API keys and environment configurations are strictly git-ignored to prevent credential leaks.
+- **Offline Capable**: The platform is built to execute locally on edge hardware, ensuring absolute data sovereignty for sensitive public safety tasks.
 
 ---
 
-## Emergency
-
-**National Cyber Helpline: 1930** (Toll-free · 24×7)  
-**Report portal: https://cybercrime.gov.in**
+## 🚨 Emergency Resources
+If you suspect you are an immediate victim of digital fraud in India:
+- **National Cyber Helpline**: Dial **1930** (Toll-free, 24×7)
+- **Official Reporting Portal**: [cybercrime.gov.in](https://cybercrime.gov.in)
 
 ---
 
-*All technology 100% free and open source. Build it. Demo it. Deploy it.*
+<div align="center">
+  <i>All technology is 100% open source. Build it. Demo it. Deploy it. Protect the public.</i>
+</div>
