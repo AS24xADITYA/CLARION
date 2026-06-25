@@ -21,10 +21,11 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group" onClick={() => setIsOpen(false)}>
-            <div className="w-9 h-9 rounded-xl bg-clarion-accent/10 border border-clarion-accent/20 flex items-center justify-center
-                            group-hover:bg-clarion-accent/20 transition-all duration-300">
-              <Shield className="w-5 h-5 text-clarion-accent" />
-            </div>
+            <img 
+              src={isDark ? '/Dark_Mode_Logo.png' : '/Light_Mode_Logo.png'} 
+              alt="CLARION Logo" 
+              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform duration-300"
+            />
             <span className="font-outfit font-bold text-xl tracking-wide text-clarion-text">CLARION</span>
           </Link>
 
