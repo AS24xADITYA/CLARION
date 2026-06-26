@@ -15,11 +15,14 @@ Architecture: FastAPI + SQLAlchemy (SQLite) + OpenCV + scikit-learn
 
 import logging
 import sys
+import time
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from dotenv import load_dotenv
 
@@ -41,6 +44,8 @@ logger = logging.getLogger("clarion.main")
 from api.routes_scan import router as scan_router
 from api.routes_scam import router as scam_router
 from api.routes_fraudbot import router as fraudbot_router
+from api.routes_dashboard import router as dashboard_router
+from api.routes_urlscanner import router as urlscanner_router
 
 
 # ─── Lifespan: Load all models on startup ────────────────────────────────────
@@ -55,6 +60,9 @@ async def lifespan(app: FastAPI):
     logger.info("  CLARION Backend Starting Up")
     logger.info("  CLARION Threat Intelligence Platform")
     logger.info("=" * 60)
+
+    # Record startup time for uptime calculation
+    app.state.start_time = time.time()
 
     # ── Database initialisation ────────────────────────────────────────────────
     try:
@@ -162,10 +170,24 @@ except ImportError:
     logger.warning("[CLARION] slowapi not installed. Rate limiting disabled.")
 
 
+# ─── Request ID Middleware (§5.3) ────────────────────────────────────────────
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Attaches a unique UUID to every request as X-Request-ID header."""
+    async def dispatch(self, request, call_next):
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+app.add_middleware(RequestIDMiddleware)
+
 # ─── Include Routers ──────────────────────────────────────────────────────────
 app.include_router(scan_router)
 app.include_router(scam_router)
 app.include_router(fraudbot_router)
+app.include_router(dashboard_router)
+app.include_router(urlscanner_router)
 
 
 # ─── Core Endpoints ───────────────────────────────────────────────────────────
@@ -174,36 +196,41 @@ app.include_router(fraudbot_router)
 async def health_check(request: Request):
     """
     System-wide health check.
-    Returns status of all three AI services.
+    Returns status of all AI services with their operational mode.
     """
     scan_model = getattr(request.app.state, "scan_model", None)
     scam_clf = getattr(request.app.state, "scam_classifier", None)
     fraudbot = getattr(request.app.state, "fraudbot_llm", None)
 
-    services = {
+    fraudbot_status = fraudbot.get_status() if fraudbot and hasattr(fraudbot, "get_status") else {
+        "mode": "unavailable", "model": None, "available": False
+    }
+
+    components = {
         "scanshield": {
-            "status": "ready" if scan_model else "unavailable",
             "mode": getattr(scan_model, "model_type", "none"),
+            "model_loaded": scan_model is not None,
         },
         "scamradar": {
-            "status": "ready" if scam_clf else "unavailable",
             "mode": getattr(scam_clf, "model_type", "none"),
+            "model_loaded": scam_clf is not None,
         },
         "fraudbot": {
-            "status": "ready" if fraudbot else "unavailable",
-            "mode": getattr(fraudbot, "model_type", "none"),
-            "ollama": getattr(fraudbot, "ollama_available", False),
+            "mode": fraudbot_status["mode"],
+            "available": fraudbot_status["available"],
+            "model": fraudbot_status["model"],
         },
     }
 
-    all_ready = all(s["status"] == "ready" for s in services.values())
+    all_ready = scan_model is not None and scam_clf is not None and fraudbot is not None
+    uptime = int(time.time() - getattr(request.app.state, "start_time", time.time()))
 
     return {
         "status": "ok" if all_ready else "degraded",
         "version": "1.0.0",
         "platform": "CLARION — AI Digital Public Safety",
-        "initiative": "CLARION Initiative 2.0 | Digital Public Safety",
-        "services": services,
+        "components": components,
+        "uptime_seconds": uptime,
         "helpline": "1930",
         "report_portal": "https://cybercrime.gov.in",
     }
