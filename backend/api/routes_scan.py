@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/scan", tags=["ScanShield"])
 
 MAX_IMAGE_SIZE_MB = int(os.getenv("MAX_IMAGE_SIZE_MB", "5"))
 ALLOWED_DENOMINATIONS = {"500", "2000"}
-ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic"}
+ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/avif", "image/gif"}
 
 
 def get_scan_model(request: Request):
