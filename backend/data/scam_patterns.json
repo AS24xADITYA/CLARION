@@ -165,5 +165,27 @@
     "report_url": "https://cybercrime.gov.in",
     "helpline": "1930",
     "severity": "MEDIUM"
+  },
+  {
+    "pattern_id": "DA_009",
+    "class_label": "lottery_otp_fraud",
+    "name": "Lottery / Prize OTP Fraud",
+    "description": "Fraudsters call claiming the victim won a lottery, lucky draw, KBC prize, or reward. They ask for an OTP, bank details, or processing fee to release the winnings.",
+    "trigger_keywords": ["lottery", "prize", "won", "winner", "lucky draw", "OTP", "claim", "reward", "jackpot", "KBC", "congratulations", "selected", "lucky winner", "cash prize", "gift", "lucky"],
+    "red_flags": [
+      "Caller claims you have won a lottery or prize you never entered",
+      "Asks for OTP to credit or release prize money into your account",
+      "Requests bank account details or Aadhaar to process the prize",
+      "Demands a processing fee or tax before releasing winnings",
+      "Claims to be calling from KBC or a government lottery department",
+      "Creates urgency that the prize will expire if you don't respond immediately",
+      "Sends a fake prize notification via WhatsApp or SMS",
+      "Asks you to keep the prize secret and not tell family members"
+    ],
+    "government_fact": "No legitimate lottery or prize requires you to pay money upfront or share OTP to claim winnings. KBC contacts winners only through official channels and never demands fees. Any such call is 100% fraud.",
+    "recommended_action": "Do not share OTP or bank details. Do not pay any fee. Disconnect and report at cybercrime.gov.in or call 1930 immediately.",
+    "report_url": "https://cybercrime.gov.in",
+    "helpline": "1930",
+    "severity": "HIGH"
   }
 ]
