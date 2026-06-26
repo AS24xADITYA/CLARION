@@ -174,3 +174,23 @@ async def fraudbot_health(request: Request):
         "model_type": getattr(bot, "model_type", "unknown") if bot else "none",
         "ollama_available": getattr(bot, "ollama_available", False) if bot else False,
     }
+
+
+@router.get("/status")
+async def fraudbot_status(request: Request):
+    """
+    Returns the FraudBot LLM operational status.
+    Used by the frontend to show the correct mode badge and fallback UI.
+    Response: { "available": bool, "mode": "groq"|"ollama"|"unavailable", "model": str|null }
+    """
+    bot = getattr(request.app.state, "fraudbot_llm", None)
+    if bot is None:
+        return {"available": False, "mode": "unavailable", "model": None}
+    if hasattr(bot, "get_status"):
+        return bot.get_status()
+    # Backwards compat
+    return {
+        "available": getattr(bot, "ollama_available", False) or getattr(bot, "groq_available", False),
+        "mode": getattr(bot, "mode", "unavailable"),
+        "model": getattr(bot, "active_model", None),
+    }
