@@ -124,6 +124,19 @@ class ScanModel:
         raw_score = float(self.model.predict(inp_batch, verbose=0)[0][0])
         confidence = raw_score if raw_score > 0.5 else 1.0 - raw_score
 
+        # ── Indeterminate-output guard ───────────────────────────────────────
+        # If the model output is near 0.5 (0.43–0.57), the model is uncertain.
+        # In this state the sigmoid is essentially coin-flip territory, which
+        # happens when the image is out-of-distribution (not a currency note)
+        # OR when the model needs a fallback. Use rule-based CV for a real answer.
+        if 0.43 <= raw_score <= 0.57:
+            logger.info(
+                "[ScanShield] EfficientNet output near 0.5 (%.4f) — "
+                "delegating to rule-based CV analyzer for robust result.",
+                raw_score,
+            )
+            return self._run_rule_based(image_array, pil_image, denomination)
+
         if raw_score < 0.35:
             verdict = "GENUINE"
         elif raw_score > 0.65:
@@ -316,6 +329,40 @@ class ScanModel:
         weighted_score = sum(scores[k] * weights[k] for k in scores)
         confidence = round(weighted_score, 4)
 
+        # ── Non-currency image detection ───────────────────────────────────
+        # Currency notes have very specific regional characteristics.
+        # If ALL region scores are simultaneously high (>0.6) AND the overall
+        # sharpness is very high (>0.8), it is likely a natural photo or document
+        # image, not a currency note, because genuine notes have specific
+        # regional variance patterns that natural images don't match.
+        all_high = all(v > 0.6 for v in scores.values())
+        high_sharpness = scores.get("print_quality", 0) > 0.7
+        very_high_color = scores.get("colour_distribution", 0) > 0.75
+
+        # Also check: currency-specific hue peak (stone grey / magenta)
+        hsv_check = cv2.cvtColor(image_array, cv2.COLOR_BGR2HSV)
+        hue_vals = hsv_check[:, :, 0].flatten()
+        # Genuine Rs500 notes peak in hue 100-150 (grey-blue), Rs2000 in 140-170 (magenta)
+        currency_hue_fraction = float(np.sum((hue_vals >= 90) & (hue_vals <= 175))) / len(hue_vals)
+        not_currency_hue = currency_hue_fraction < 0.25  # less than 25% pixels in currency hue range
+
+        if (all_high and very_high_color and not_currency_hue) or (all_high and high_sharpness and not_currency_hue):
+            # Likely not a currency note at all
+            anomaly_regions = [{
+                "label": "Not a Currency Note",
+                "description": "Image does not appear to contain an Indian currency note. Please upload a clear photo of a ₹500 or ₹2000 note.",
+                "bbox": {"x": 0, "y": 0, "w": image_array.shape[1], "h": image_array.shape[0]},
+                "score": 0.90,
+                "severity": "HIGH",
+            }]
+            heatmap_b64 = self._generate_rule_based_heatmap(image_array, anomaly_regions)
+            return {
+                "verdict": "UNCERTAIN",
+                "confidence": 0.30,
+                "anomaly_regions": anomaly_regions,
+                "heatmap_image": heatmap_b64,
+            }
+
         if confidence >= 0.70:
             verdict = "GENUINE"
         elif confidence <= 0.40:
@@ -378,16 +425,67 @@ class ScanModel:
 
     def _preprocess(self, image_bytes: bytes) -> tuple[np.ndarray, Image.Image]:
         """
-        Convert raw bytes → (OpenCV BGR array, PIL Image).
-        Applies perspective correction heuristic and resizes to IMG_SIZE.
+        Convert raw bytes to (OpenCV BGR array, PIL Image).
+        Decode chain: PIL -> imageio (AVIF) -> OpenCV raw
+        Handles: JPEG, PNG, WEBP (static & animated), AVIF, GIF, HEIC
         """
-        # Decode with PIL first (handles JPEG/PNG/WEBP/HEIC)
-        pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        pil_image = None
 
-        # Resize for model
+        # ── Step 1: PIL decode (handles most formats) ─────────────────────────
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+            # Take first frame for animated formats
+            try:
+                if hasattr(img, 'n_frames') and img.n_frames > 1:
+                    img.seek(0)
+            except Exception:
+                pass
+            pil_image = img.convert("RGB")
+        except Exception as pil_err:
+            logger.warning("[ScanShield] PIL decode failed: %s", pil_err)
+
+        # ── Step 2: imageio fallback (good AVIF/HEIC support) ─────────────────
+        if pil_image is None:
+            try:
+                import imageio.v3 as iio
+                frame = iio.imread(io.BytesIO(image_bytes))
+                # imageio returns HxWxC array in RGB order
+                if frame.ndim == 2:  # grayscale
+                    frame = np.stack([frame] * 3, axis=-1)
+                elif frame.shape[2] == 4:  # RGBA
+                    frame = frame[:, :, :3]
+                pil_image = Image.fromarray(frame.astype(np.uint8), "RGB")
+                logger.info("[ScanShield] Decoded via imageio fallback.")
+            except Exception as iio_err:
+                logger.warning("[ScanShield] imageio fallback failed: %s", iio_err)
+
+        # ── Step 3: OpenCV raw decode (last resort) ───────────────────────────
+        if pil_image is None:
+            try:
+                arr = np.frombuffer(image_bytes, dtype=np.uint8)
+                bgr = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                if bgr is None:
+                    raise ValueError("cv2.imdecode returned None — unsupported format")
+                rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(rgb)
+                logger.info("[ScanShield] Decoded via cv2 fallback.")
+            except Exception as cv_err:
+                raise ValueError(
+                    "Cannot decode this image format. "
+                    "Please convert to JPEG or PNG and try again. "
+                    f"(Detail: {cv_err})"
+                ) from cv_err
+
+        # ── Validate dimensions ───────────────────────────────────────────────
+        w, h = pil_image.size
+        if w < 32 or h < 32:
+            raise ValueError(f"Image too small ({w}x{h}). Minimum 32x32 pixels required.")
+
+        # Keep original PIL image for heatmap; resize for model input
         pil_resized = pil_image.resize(IMG_SIZE, Image.LANCZOS)
-
-        # Convert to OpenCV BGR
         image_array = cv2.cvtColor(np.array(pil_resized), cv2.COLOR_RGB2BGR)
+
+        if image_array.ndim != 3 or image_array.shape[2] != 3:
+            raise ValueError(f"Unexpected image array shape: {image_array.shape}")
 
         return image_array, pil_image
