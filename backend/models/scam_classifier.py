@@ -37,6 +37,7 @@ CLASS_LABELS = [
     "rbi_freeze",
     "narcotics_bureau",
     "courier_scam",
+    "lottery_otp_fraud",
 ]
 
 # Urgency / pressure phrases that amplify scam score
@@ -52,6 +53,32 @@ MONEY_DEMAND_PATTERNS = [
     r"\bpay\b", r"\btransfer\b", r"\bsend money\b", r"\bUPI\b",
     r"\bgift card\b", r"\bcrypto\b", r"\bRs\b", r"\brupee\b",
     r"\bpaise\b", r"\bfine\b", r"\bpenalty\b", r"\bfee\b",
+]
+
+# Tier-1: Question / advice-seeking phrases => user is reporting a scam, needs higher bar
+QUESTION_PATTERNS = [
+    r"\bshould i\b", r"\bwhat should\b", r"\bis this (a )?scam\b",
+    r"\bwhat to do\b", r"\bplease (help|advise|tell)\b", r"\badvice\b",
+    r"\bam i\b", r"\bwas i\b", r"\blegitimate\b", r"\breal or fake\b",
+    r"\bhow (do|can) i\b", r"\bshould (this|it|they)\b",
+    r"\bcould (this|it) be\b", r"\bsuspicious\b", r"\bcheck if\b",
+]
+
+# Tier-2: Active threat phrases that strongly indicate an ongoing scam description
+ACTIVE_THREAT_INDICATORS = [
+    r"(your|my) account (will be|has been|is being) (frozen|blocked|suspended|closed)",
+    r"(will|would) (arrest|detain|summon) you",
+    r"(digital|online) arrest",
+    r"transfer (the )?(money|funds|amount) (to|into)",
+    r"(pay|send) (rs\.?|rupees?|inr)?\s*\d+",
+    r"(government|safe|escrow) account",
+    r"(do not|don't) (tell|inform|share|disconnect)",
+    r"(within|in) \d+ (hours?|minutes?)",
+    r"(press|dial) \d+ (to|for)",
+    r"(install|download) (anydesk|teamviewer|remote)",
+    r"(number|sim) (will be|has been) (blocked|suspended|deactivated)",
+    r"(aadhaar|pan|kyc) (is |has been )?(linked|flagged|compromised)",
+    r"(money laundering|drug trafficking|illegal activity) (in your name|through your)",
 ]
 
 
@@ -136,7 +163,19 @@ class ScamClassifier:
     # ──────────────────────────────────────────────────────────────────────────
 
     def _run_distilbert(self, text: str) -> dict:
-        """Run DistilBERT inference and enrich with knowledge base."""
+        """
+        Run DistilBERT inference with confidence gating and hallucination guard.
+
+        The model was fine-tuned on limited data and can hallucinate —
+        e.g. classifying a Google account login alert as 'RBI Account Freeze Scam'
+        at only 47% confidence. On a 9-class softmax, 47% is barely above chance.
+
+        Gates applied:
+          < 50%  confidence  -> always return legitimate (model is uncertain)
+          50-72% confidence  -> crosscheck with rule-based classifier:
+                               if rule-based disagrees -> override to legitimate
+          >= 72% confidence  -> accept DistilBERT prediction
+        """
         import torch
         import torch.nn.functional as F
 
@@ -156,7 +195,33 @@ class ScamClassifier:
         confidence = float(probabilities[predicted_idx])
         class_label = CLASS_LABELS[predicted_idx]
 
-        return self._build_response(class_label, confidence, text)
+        logger.info(
+            "[ScamRadar] DistilBERT: %s @ %.1f%% confidence",
+            class_label, confidence * 100,
+        )
+
+        # Gate 1: Hard floor — model is undertrained so confidence is generally low.
+        # Below 38% on a 10-class softmax (random = 10%) is genuinely uncertain.
+        if confidence < 0.38:
+            logger.info("[ScamRadar] DistilBERT below 38%% threshold — returning legitimate.")
+            return self._build_response("legitimate", round(1.0 - confidence, 4), text)
+
+        # Gate 2: Moderate confidence scam (38-60%) — crosscheck with rule-based.
+        # If rule-based disagrees, override (hallucination guard).
+        if class_label != "legitimate" and confidence < 0.60:
+            rb = self._run_rule_based(text)
+            if not rb.get("is_scam", False):
+                logger.info(
+                    "[ScamRadar] DistilBERT predicted %s @ %.1f%% but rule-based "
+                    "returned legitimate. Overriding (hallucination guard).",
+                    class_label, confidence * 100,
+                )
+                return self._build_response("legitimate", 0.78, text)
+            logger.info(
+                "[ScamRadar] Both DistilBERT + rule-based agree on scam: %s", class_label
+            )
+
+        return self._build_response(class_label, round(confidence, 4), text)
 
     # ──────────────────────────────────────────────────────────────────────────
     # Rule-based PatternKeywordClassifier (fallback — real NLP analysis)
@@ -164,20 +229,34 @@ class ScamClassifier:
 
     def _run_rule_based(self, text: str) -> dict:
         """
-        TF-IDF weighted keyword scoring with contextual amplifiers.
+        3-Tier context-aware scam classifier.
 
-        Algorithm:
-        1. Normalize and tokenize text.
-        2. Score each of 9 classes by keyword overlap (TF-IDF weighted).
-        3. Apply urgency and money-demand multipliers.
-        4. Apply a "legitimate" baseline floor.
-        5. Softmax normalize to get probabilities.
-        6. Return class with highest probability.
+        Tier 1 - Active threat check:
+            Regex patterns that only appear in real scam speech
+            (e.g. 'account will be frozen', 'transfer money to government account').
+        Tier 2 - Intent check:
+            Detect if user is asking for advice. Advice-seeking text needs a
+            much stronger signal before being classified as scam.
+        Tier 3 - Keyword scoring:
+            Requires 3+ specific keyword hits OR active threat indicator.
+            Generic single words (OTP, call, number) alone cannot trigger a verdict.
         """
         text_lower = text.lower()
         tokens = set(re.findall(r"\b\w+\b", text_lower))
 
-        # Detect urgency signals
+        # Tier 1: Active threat indicator check
+        active_threats = sum(
+            1 for pat in ACTIVE_THREAT_INDICATORS
+            if re.search(pat, text_lower, re.IGNORECASE)
+        )
+
+        # Tier 2: Intent detection — is the user seeking advice?
+        is_question = any(
+            re.search(pat, text_lower, re.IGNORECASE)
+            for pat in QUESTION_PATTERNS
+        )
+
+        # Urgency / money demand signals
         urgency_boost = sum(1 for phrase in URGENCY_PHRASES if phrase in text_lower)
         money_demand = sum(
             1 for pat in MONEY_DEMAND_PATTERNS
@@ -185,51 +264,84 @@ class ScamClassifier:
         )
 
         class_scores = {}
+        kw_match_counts = {}
 
-        # Score each scam pattern
+        # Tier 3: Keyword + red-flag scoring
         for pattern in self.patterns:
             label = pattern["class_label"]
             keywords = [kw.lower() for kw in pattern["trigger_keywords"]]
             red_flags = [rf.lower() for rf in pattern["red_flags"]]
 
-            # Keyword overlap score (IDF-like weighting: rarer keywords score higher)
-            kw_matches = sum(1 for kw in keywords if kw in text_lower)
-            kw_score = kw_matches / (len(keywords) + 1)
+            # Exact phrase matching for multi-word keywords (2x weight),
+            # word-boundary matching for single words
+            kw_matches = 0
+            for kw in keywords:
+                if " " in kw:
+                    if kw in text_lower:
+                        kw_matches += 2
+                elif re.search(r"\b" + re.escape(kw) + r"\b", text_lower):
+                    kw_matches += 1
 
-            # Red flag phrase matching (partial match)
+            kw_match_counts[label] = kw_matches
+            kw_score = min(1.0, kw_matches / max(len(keywords), 1))
+
+            # Red flag matching with stop-word filtering
+            stop_words = {"a", "an", "the", "is", "are", "was", "were",
+                          "be", "been", "to", "of", "and", "or",
+                          "in", "on", "at", "by", "for", "with", "from",
+                          "your", "their", "you", "they", "it", "this", "that"}
             rf_matches = 0
             for rf in red_flags:
                 rf_words = set(re.findall(r"\b\w+\b", rf))
-                overlap = rf_words.intersection(tokens)
-                if len(overlap) >= max(2, len(rf_words) // 3):
+                distinctive = rf_words - stop_words
+                if not distinctive:
+                    continue
+                overlap = distinctive.intersection(tokens)
+                if len(overlap) / len(distinctive) >= 0.6:
                     rf_matches += 1
 
-            rf_score = rf_matches / (len(red_flags) + 1)
+            rf_score = rf_matches / max(len(red_flags), 1)
 
-            # Combined score with urgency + money demand amplifiers
-            combined = (kw_score * 0.5) + (rf_score * 0.5)
-            combined *= 1 + (urgency_boost * 0.15) + (money_demand * 0.2)
+            combined = (kw_score * 0.6) + (rf_score * 0.4)
+            if active_threats > 0 or not is_question:
+                combined *= 1 + (urgency_boost * 0.12) + (money_demand * 0.15)
 
             class_scores[label] = combined
 
-        # Legitimate baseline (inversely proportional to urgency/money signals)
-        base_legit = max(0.05, 0.4 - (urgency_boost * 0.08) - (money_demand * 0.1))
+        # Hard gate: require minimum signal before classifying as scam
+        max_kw_hits = max(kw_match_counts.values(), default=0)
+        min_kw_required = 1 if active_threats >= 1 else 3
+        if is_question:
+            min_kw_required = 3 if active_threats == 0 else 2
+
+        if max_kw_hits < min_kw_required and urgency_boost < 2 and active_threats == 0:
+            return self._build_response("legitimate", 0.85, text)
+
+        # Legitimate baseline
+        if active_threats >= 2 or urgency_boost >= 3:
+            base_legit = 0.10
+        elif active_threats >= 1 or urgency_boost >= 2 or money_demand >= 3:
+            base_legit = 0.25
+        elif is_question:
+            base_legit = 0.70
+        else:
+            base_legit = 0.50
         class_scores["legitimate"] = base_legit
 
         # Softmax normalization
         max_score = max(class_scores.values(), default=1.0)
-        exp_scores = {k: math.exp(v * 5 - max_score * 5) for k, v in class_scores.items()}
+        exp_scores = {k: math.exp((v - max_score) * 6) for k, v in class_scores.items()}
         total = sum(exp_scores.values())
         probabilities = {k: v / total for k, v in exp_scores.items()}
 
-        # Winner
         best_label = max(probabilities, key=probabilities.get)
         best_confidence = probabilities[best_label]
 
-        # Confidence calibration: ensure minimum separation
-        if best_confidence < 0.35:
+        # Final confidence gate
+        min_conf = 0.55 if active_threats >= 1 else 0.65
+        if best_label != "legitimate" and best_confidence < min_conf:
             best_label = "legitimate"
-            best_confidence = 0.75
+            best_confidence = 0.72
 
         return self._build_response(best_label, best_confidence, text)
 
