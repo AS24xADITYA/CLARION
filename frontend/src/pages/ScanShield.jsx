@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
-import { Scan, Upload, Camera, X, AlertTriangle, CheckCircle, Loader2, ImagePlus } from 'lucide-react'
+import { Scan, Upload, Camera, X, AlertTriangle, CheckCircle, Loader2, ImagePlus, Download } from 'lucide-react'
 import CameraCapture from '../components/CameraCapture'
 import ResultCard from '../components/ResultCard'
 import { scanCurrencyNote } from '../services/api'
+import { downloadReport } from '../services/reportExport'
 
 const DENOMINATIONS = [
   { value: '500',  label: '₹500',  description: 'Stone grey/lavender' },
@@ -250,6 +251,25 @@ export default function ScanShield() {
                   Upload or capture a ₹500 note image, then click Analyse Note
                 </p>
               </div>
+            )}
+
+            {/* Export button */}
+            {result && (
+              <button
+                onClick={() => downloadReport({
+                  report_type: 'currency_scan',
+                  denomination: denomination,
+                  verdict: result.verdict,
+                  confidence: result.confidence,
+                  anomaly_regions: result.anomaly_regions,
+                  model_mode: result.model_type,
+                  scan_id: crypto.randomUUID(),
+                }, 'CLARION_ScanShield_Report')}
+                className="mt-3 btn-ghost text-sm w-full flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <Download className="w-4 h-4" />
+                Download Scan Report
+              </button>
             )}
 
             {/* Info card */}

@@ -5,7 +5,10 @@ import ScanShield from './pages/ScanShield'
 import ScamRadar from './pages/ScamRadar'
 import FraudBot from './pages/FraudBot'
 import About from './pages/About'
+import Dashboard from './pages/Dashboard'
+import URLScanner from './pages/URLScanner'
 import { ThemeProvider } from './contexts/ThemeContext'
+import ErrorBoundary from './components/ErrorBoundary'
 
 export default function App() {
   return (
@@ -15,11 +18,13 @@ export default function App() {
           <Navbar />
           <main className="flex-1">
             <Routes>
-              <Route path="/"          element={<Home />} />
-              <Route path="/scan"      element={<ScanShield />} />
-              <Route path="/scam"      element={<ScamRadar />} />
-              <Route path="/fraudbot"  element={<FraudBot />} />
-              <Route path="/about"     element={<About />} />
+              <Route path="/"           element={<Home />} />
+              <Route path="/scan"       element={<ErrorBoundary><ScanShield /></ErrorBoundary>} />
+              <Route path="/scam"       element={<ErrorBoundary><ScamRadar /></ErrorBoundary>} />
+              <Route path="/fraudbot"   element={<ErrorBoundary><FraudBot /></ErrorBoundary>} />
+              <Route path="/dashboard"  element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+              <Route path="/urlscanner" element={<ErrorBoundary><URLScanner /></ErrorBoundary>} />
+              <Route path="/about"      element={<About />} />
               {/* Fallback */}
               <Route path="*" element={
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Shield, Search, MessageSquare, AlertTriangle, Menu, X, Sun, Moon } from 'lucide-react'
+import { Search, MessageSquare, AlertTriangle, Menu, X, Sun, Moon, LayoutDashboard, Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 
@@ -9,9 +9,11 @@ export default function Navbar() {
   const { isDark, toggleTheme } = useTheme()
 
   const links = [
-    { name: 'ScanShield', path: '/scan',     icon: Search },
-    { name: 'ScamRadar',  path: '/scam',     icon: AlertTriangle },
-    { name: 'FraudBot',   path: '/fraudbot', icon: MessageSquare },
+    { name: 'Command Centre', path: '/dashboard',  icon: LayoutDashboard },
+    { name: 'ScanShield',     path: '/scan',        icon: Search },
+    { name: 'ScamRadar',      path: '/scam',        icon: AlertTriangle },
+    { name: 'FraudBot',       path: '/fraudbot',    icon: MessageSquare },
+    { name: 'Link Scanner',   path: '/urlscanner',  icon: Link2 },
   ]
 
   return (
@@ -30,7 +32,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-1">
             {links.map((link) => {
               const active = location.pathname === link.path
               return (
@@ -58,7 +60,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-3">
+          <div className="lg:hidden flex items-center gap-3">
             {/* Theme Toggle (Mobile) */}
             <button
               onClick={toggleTheme}
@@ -80,7 +82,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-clarion-surface border-b border-clarion-border animate-fade-in absolute w-full shadow-xl">
+        <div className="lg:hidden bg-clarion-surface border-b border-clarion-border animate-fade-in absolute w-full shadow-xl">
           <div className="px-4 py-3 space-y-1">
             {links.map((link) => {
               const active = location.pathname === link.path
@@ -89,7 +91,7 @@ export default function Navbar() {
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px]
                     ${active ? 'bg-clarion-accent/10 text-clarion-accent' : 'text-clarion-muted hover:bg-clarion-surface2 hover:text-clarion-text'}`}
                 >
                   <link.icon className="w-5 h-5" />

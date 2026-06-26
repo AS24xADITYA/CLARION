@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { AlertTriangle, Shield, CheckCircle, Loader2, ExternalLink, Phone, ChevronRight } from 'lucide-react'
+import { AlertTriangle, Shield, CheckCircle, Loader2, ExternalLink, Phone, ChevronRight, Download } from 'lucide-react'
 import ScamPatternBadge from '../components/ScamPatternBadge'
 import RiskMeter from '../components/RiskMeter'
 import { classifyScam, getScamPatterns } from '../services/api'
+import { downloadReport } from '../services/reportExport'
 
 const MAX_CHARS = 3000
 
@@ -38,9 +39,16 @@ export default function ScamRadar() {
     })
   }, [])
 
+  const wordCount = text.trim() ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0
+  const MIN_WORDS = 15
+
   const handleAnalyse = async () => {
     if (text.trim().length < 10) {
       setError('Please describe the situation in at least 10 characters.')
+      return
+    }
+    if (wordCount < MIN_WORDS) {
+      setError(`Please describe the incident in more detail (minimum ${MIN_WORDS} words) for an accurate assessment. Currently: ${wordCount} words.`)
       return
     }
     setIsAnalysing(true)
@@ -115,13 +123,22 @@ export default function ScamRadar() {
 
 Example: 'A person called claiming to be a CBI officer. He said my account was linked to money laundering and demanded I transfer money immediately or they will arrest me via video call...'"
                 rows={8}
-                className="form-input resize-none pr-20 text-sm leading-relaxed"
+                className="form-input resize-none text-sm leading-relaxed"
                 aria-label="Scam description input"
               />
-              <div className={`absolute bottom-3 right-3 text-xs font-mono
-                ${text.length > MAX_CHARS * 0.9 ? 'text-clarion-warning' : 'text-clarion-muted'}`}>
-                {text.length}/{MAX_CHARS}
-              </div>
+            </div>
+
+            {/* Live word / char counter */}
+            <div className="flex items-center justify-between text-xs">
+              <span className={`font-medium ${wordCount > 0 && wordCount < 15 ? 'text-amber-500' : 'text-clarion-muted'}`}>
+                {wordCount > 0 && wordCount < 15
+                  ? `${wordCount} words — add ${15 - wordCount} more for accurate analysis`
+                  : `${wordCount} words`
+                }
+              </span>
+              <span className={`font-mono ${text.length > MAX_CHARS * 0.9 ? 'text-clarion-warning' : 'text-clarion-muted'}`}>
+                {text.length} / {MAX_CHARS} characters
+              </span>
             </div>
 
             {/* Error */}
@@ -137,7 +154,7 @@ Example: 'A person called claiming to be a CBI officer. He said my account was l
             <button
               id="analyse-scam-button"
               onClick={handleAnalyse}
-              disabled={isAnalysing || text.trim().length < 10}
+              disabled={isAnalysing || wordCount < 15}
               className="btn-primary w-full flex items-center justify-center gap-3 py-4 text-base"
             >
               {isAnalysing ? (
@@ -237,6 +254,26 @@ Example: 'A person called claiming to be a CBI officer. He said my account was l
                 <p className="text-[10px] text-clarion-muted/50 text-right font-mono">
                   {result.model_type} · {result.language_detected} · {result.confidence_pct}
                 </p>
+
+                {/* Export button */}
+                <button
+                  onClick={() => downloadReport({
+                    report_type: 'scam_analysis',
+                    input_text_length: text.length,
+                    verdict: result.is_scam ? 'SCAM_DETECTED' : 'LEGITIMATE',
+                    scam_type: result.scam_type,
+                    confidence: result.confidence,
+                    red_flags_found: result.red_flags_found,
+                    recommended_action: result.recommended_action,
+                    report_url: result.report_url,
+                    model_mode: result.model_type,
+                    analysis_id: crypto.randomUUID(),
+                  }, 'CLARION_ScamRadar_Report')}
+                  className="btn-ghost text-sm w-full flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Analysis Report
+                </button>
               </div>
             )}
           </div>

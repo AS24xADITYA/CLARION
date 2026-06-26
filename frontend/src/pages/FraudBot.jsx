@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import ChatBubble from '../components/ChatBubble'
 import LanguageSelector from '../components/LanguageSelector'
+import ConfirmModal from '../components/ConfirmModal'
 import { sendFraudBotMessage } from '../services/api'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -212,15 +213,25 @@ export default function FraudBot() {
   const [isSending, setIsSending]         = useState(false)
   const [language, setLanguage]           = useState('auto')
   const [detectedLang, setDetectedLang]   = useState(null)
-  const [sessionId]                       = useState(() => generateSessionId())
+  const [sessionId, setSessionId]         = useState(() => generateSessionId())
   const [verdictRisk, setVerdictRisk]     = useState(null)
   const [modelType, setModelType]         = useState('rule_based')
   const [error, setError]                 = useState(null)
+  const [llmStatus, setLlmStatus]         = useState(null)   // null=loading, obj=fetched
+  const [showResetModal, setShowResetModal] = useState(false)
 
   const chatEndRef  = useRef(null)
   const inputRef    = useRef(null)
   const messagesRef = useRef(messages)
   messagesRef.current = messages
+
+  // Fetch LLM status on mount
+  useEffect(() => {
+    fetch('http://localhost:8000/api/fraudbot/status')
+      .then(r => r.json())
+      .then(data => setLlmStatus(data))
+      .catch(() => setLlmStatus({ available: false, mode: 'unavailable', model: null }))
+  }, [])
 
   // Auto-scroll on new message
   useEffect(() => {
@@ -289,14 +300,17 @@ export default function FraudBot() {
     }
   }
 
-  const resetChat = () => {
+  function resetChat() {
+    setShowResetModal(true)
+  }
+
+  function confirmReset() {
     setMessages([INITIAL_MESSAGE])
+    setSessionId(generateSessionId())
     setVerdictRisk(null)
-    setDetectedLang(null)
     setError(null)
     setInput('')
-    setModelType('rule_based')
-    inputRef.current?.focus()
+    setShowResetModal(false)
   }
 
   // Show suggested replies only when waiting for user input on a specific step
@@ -310,6 +324,17 @@ export default function FraudBot() {
 
   return (
     <div className="flex flex-col h-screen max-w-3xl mx-auto">
+
+      {/* ── Confirm Reset Modal ─────────────────────────────────────────────── */}
+      <ConfirmModal
+        isOpen={showResetModal}
+        title="Start a new assessment?"
+        message="Your current conversation will be cleared. This cannot be undone."
+        confirmLabel="Yes, Start Fresh"
+        cancelLabel="Cancel"
+        onConfirm={confirmReset}
+        onCancel={() => setShowResetModal(false)}
+      />
 
       {/* ── Chat Header ───────────────────────────────────────────────────── */}
       <div className="glass-card sm:rounded-t-2xl rounded-none flex items-center gap-3 px-4 py-3
