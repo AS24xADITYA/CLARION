@@ -186,9 +186,22 @@ class FraudBotLLM:
         self.groq_available = False
         self.model_name = None
         self.model_type = "rule_based"
+        self.mode = "unavailable"          # «« spec §2.2: explicit mode attribute
+        self.active_model = None           # «« spec §2.2: active model name
         self._try_connect_ollama()
         if not self.ollama_available:
             self._try_connect_groq()
+
+        # Set the clean mode/active_model after connection attempts
+        if self.ollama_available:
+            self.mode = "ollama"
+            self.active_model = self.model_name
+        elif self.groq_available:
+            self.mode = "groq"
+            self.active_model = self.model_name
+        else:
+            self.mode = "unavailable"
+            self.active_model = None
 
     # ──────────────────────────────────────────────────────────────────────────
     # Connection setup
@@ -256,6 +269,17 @@ class FraudBotLLM:
     # ──────────────────────────────────────────────────────────────────────────
     # Public interface
     # ──────────────────────────────────────────────────────────────────────────
+
+    def get_status(self) -> dict:
+        """
+        Returns the current operational status of the LLM backend.
+        Called by the /health endpoint and the /api/fraudbot/status route.
+        """
+        return {
+            "mode": self.mode,             # "groq" | "ollama" | "unavailable"
+            "model": self.active_model,    # model name string or None
+            "available": self.mode != "unavailable",
+        }
 
     def detect_language(self, text: str) -> str:
         """Detect language code from text. Returns 'en' on failure."""
